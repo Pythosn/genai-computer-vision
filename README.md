@@ -1,210 +1,135 @@
-# La Generative AI en Computer Vision
-### Expliqué comme si j'avais 5 ans
-
-> Mini-TAF — Modeling – Generative AI — Avril 2026
+# Generative AI en Computer Vision
 
 ---
 
-## 1. C'est quoi la Generative AI en Computer Vision ?
+## Ce que c'est vraiment
 
-Imagine que tu apprends à dessiner en regardant des milliers de photos de chats. Au bout d'un moment, tu es capable de dessiner un chat que tu n'as **jamais vu** — tu as compris les formes, les proportions, les couleurs. Tu ne copies pas. Tu inventes.
+La plupart des gens pensent que l'IA "cherche" une image dans une base de données quand on lui demande d'en créer une. Ce n'est pas ce qui se passe.
 
-C'est exactement ce que fait la Generative AI en Computer Vision.
+Un modèle génératif ne stocke pas d'images. Il apprend des **patterns** — les formes qui reviennent, les textures, les relations entre les objets — et à partir de ça, il devient capable d'assembler quelque chose de nouveau. Comme un musicien qui a écouté des milliers de morceaux et qui peut improviser sans jamais recopier.
 
-Un modèle étudie des millions d'images, comprend leur structure interne, et devient capable d'en **créer de nouvelles** — cohérentes, réalistes, et parfois indiscernables du réel.
-
-**Exemples concrets :**
-- Tu décris "un chat orange sur la lune" → le modèle génère cette image
-- Le modèle crée des visages humains ultra-réalistes de personnes qui n'existent pas
-- Tu envoies un croquis au crayon → il le transforme en photo réaliste
+C'est ça la Generative AI en Computer Vision : un système qui a appris à voir, et qui utilise cette compréhension pour créer.
 
 ---
 
-## 2. Pourquoi utiliser la GenAI ?
+## Pourquoi ça change quelque chose
 
-**Sans GenAI :**
-Pour créer 1000 images de produits pour un site e-commerce → photographe, studio, jours de travail.
+Avant, produire une image demandait soit un humain (dessinateur, photographe), soit une banque d'images existante. Les deux ont des limites évidentes : le temps, le coût, et le fait que tu ne peux montrer que ce qui existe déjà.
 
-**Avec GenAI :**
-Tu décris les produits → l'IA génère toutes les images en quelques minutes.
+La GenAI casse ces trois limites en même temps.
 
-| Usage | Exemple concret |
-|-------|----------------|
-| Créer du contenu visuel rapidement | Générer des illustrations, designs, avatars en secondes |
-| Réduire les coûts | Plus besoin de studio photo pour du contenu e-commerce |
-| Augmenter les données (Data Augmentation) | En médecine, créer artificiellement des images de maladies rares pour entraîner d'autres modèles |
-| Personnalisation | Générer des décors de jeux vidéo uniques pour chaque joueur |
-| Améliorer la sécurité | Simuler de fausses cyberattaques visuelles pour entraîner des systèmes de défense |
+Quelques cas où ça devient concret :
+
+- **En médecine**, certaines maladies sont si rares qu'on n'a pas assez d'images pour entraîner des modèles de diagnostic. On peut maintenant en générer artificiellement — des images synthétiques mais réalistes, qui permettent d'entraîner des outils qui sauvent des vies.
+- **En sécurité informatique**, on génère de fausses attaques visuelles pour tester des systèmes de défense avant qu'une vraie menace n'arrive.
+- **En design et e-commerce**, une description textuelle suffit à produire des centaines de variantes visuelles en quelques minutes.
+
+Ce n'est pas juste un gain de temps. C'est une capacité qui n'existait tout simplement pas avant.
 
 ---
 
-## 3. Les architectures principales
+## Les trois façons de faire
 
-Il existe 3 grandes familles de modèles génératifs en Computer Vision.
+Il n'y a pas qu'une seule manière de construire un modèle génératif. Trois architectures dominent, et elles partent chacune d'une intuition très différente.
 
 ---
 
-### 3.1 GAN — Generative Adversarial Network
+### GAN — deux réseaux qui se battent
 
-**L'analogie : le faussaire et le détective**
+L'idée de base est simple : faire travailler deux réseaux l'un contre l'autre.
 
-> Un faussaire essaie de reproduire des billets de banque. Un détective tente de les détecter. Le faussaire améliore sa technique, le détective affine son oeil. Après des milliers de rounds, les faux billets sont devenus indiscernables des vrais.
-
-Un GAN repose sur **deux réseaux de neurones qui s'affrontent** :
+Le premier, le **générateur**, part de bruit aléatoire et essaie de produire une image crédible. Le second, le **discriminateur**, reçoit un mélange d'images réelles et d'images générées, et doit les distinguer. Le générateur essaie de tromper le discriminateur. Le discriminateur essaie de ne pas se faire avoir. Ils s'améliorent ensemble.
 
 ```mermaid
 flowchart LR
-    A["Bruit\naléatoire"] --> B["Générateur\nCrée de fausses images"]
-    B --> C["Fausse image"]
-    D["Vraie image"] --> E["Discriminateur\nVrai ou Faux ?"]
+    A[Bruit aléatoire] --> B[Générateur]
+    B --> C[Image générée]
+    D[Image réelle] --> E[Discriminateur]
     C --> E
-    E --> F["Vrai / Faux"]
-    F -.->|"Le générateur apprend à tromper"| B
-
-    style A fill:#2a2a36,stroke:#4a4a60,color:#9090a8
-    style B fill:#3d3560,stroke:#5b4c8a,color:#c8bef0
-    style C fill:#5a2a1a,stroke:#8a4c2e,color:#e08060
-    style D fill:#1e4a3a,stroke:#3d7a5f,color:#7fd4a8
-    style E fill:#1a3a5a,stroke:#2e5f8a,color:#80c4e8
-    style F fill:#1a3a20,stroke:#3d6a45,color:#70c880
+    E --> F{Vraie ou fausse ?}
+    F -.->|Retour au générateur| B
 ```
 
-**Avantages :**
-- Génère des images très réalistes
-- Rapide en inférence
+Ce qui rend le GAN puissant, c'est aussi ce qui le rend difficile : l'équilibre entre les deux réseaux est fragile. Si le discriminateur devient trop fort trop vite, le générateur ne reçoit plus de signal utile pour s'améliorer.
 
-**Limites :**
-- Entraînement instable et difficile (risque de *mode collapse* — le générateur ne produit plus qu'un seul type d'image)
-- Contrôle limité sur ce qui est généré
+**Avantages :** images très réalistes, génération rapide
 
-**Exemple réel :** StyleGAN de NVIDIA — chaque visage sur [thispersondoesnotexist.com](https://thispersondoesnotexist.com) est généré par un GAN.
+**Limites :** entraînement instable, risque de mode collapse, contrôle limité
+
+**Exemple :** StyleGAN de NVIDIA — chaque visage sur thispersondoesnotexist.com est généré par un GAN.
 
 ---
 
-### 3.2 VAE — Variational Autoencoder
+### VAE — comprendre pour reconstruire
 
-**L'analogie : la carte du pays des images**
+Le VAE part d'une idée différente : plutôt que d'opposer deux réseaux, on va apprendre à **comprendre la structure** des images.
 
-> Tu as visité 1000 villes. Au lieu de mémoriser chaque détail, tu dessines une carte mentale : les villes côtières à gauche, les montagnes à droite, les villes froides en haut. Pour inventer une nouvelle ville, tu pointes un endroit sur la carte — même si tu n'y es jamais allé.
-
-Un VAE encode chaque image comme des **coordonnées dans un espace mathématique** appelé espace latent, puis les reconstruit à partir de ces coordonnées.
+L'encodeur prend une image et la comprime en un petit vecteur de nombres — ses coordonnées dans un espace appelé espace latent. Le décodeur prend ces coordonnées et reconstruit l'image.
 
 ```mermaid
 flowchart LR
-    A["Image\nd'entrée"] --> B["Encodeur\nCompresse l'image"]
-    B --> C["Moyenne μ\noù suis-je ?"]
-    B --> D["Variance σ\nincertitude"]
-    subgraph L["Espace latent"]
-        C
-        D
-    end
-    C --> E["Décodeur\nReconstruit l'image"]
-    D --> E
-    E --> F["Image\nreconstruite"]
-
-    style A fill:#1e4a3a,stroke:#3d7a5f,color:#7fd4a8
-    style B fill:#3d3560,stroke:#5b4c8a,color:#c8bef0
-    style C fill:#5a3a1a,stroke:#8a5c2e,color:#e0b470
-    style D fill:#5a2a1a,stroke:#8a4c2e,color:#e08060
-    style E fill:#1a3a5a,stroke:#2e5f8a,color:#80c4e8
-    style F fill:#1e4a3a,stroke:#4a9975,color:#90e0b8
-    style L fill:#1a1a20,stroke:#4a3a2a,color:#8a7055
+    A[Image d'entrée] --> B[Encodeur]
+    B --> C[Espace latent]
+    C --> D[Décodeur]
+    D --> E[Image reconstruite]
 ```
 
-**Avantages :**
-- Entraînement stable
-- Espace latent continu — on peut naviguer entre les images (ex : passer progressivement d'un visage souriant à un visage neutre)
-- Solide mathématiquement
+La subtilité du VAE : l'espace latent est organisé de façon continue. Des images similaires se retrouvent proches dans cet espace. Ça permet d'interpoler progressivement entre deux images, ou de modifier une seule caractéristique sans toucher au reste.
 
-**Limites :**
-- Images parfois floues ou moins nettes que les GAN
-- Contrôle textuel limité
+**Avantages :** entraînement stable, espace latent navigable, mathématiquement solide
 
-**Exemple réel :** Génération d'images médicales pour augmenter des datasets de maladies rares.
+**Limites :** images parfois floues, contrôle textuel faible
+
+**Exemple :** génération d'images médicales synthétiques pour augmenter des datasets de maladies rares.
 
 ---
 
-### 3.3 Diffusion Models
+### Diffusion — partir du chaos
 
-**L'analogie : le puzzle qui se défait et se refait**
+Les modèles de diffusion sont les plus récents des trois, et ils dominent aujourd'hui le marché.
 
-> Tu prends une photo et tu l'abimes progressivement — un peu de grain, puis plus, jusqu'à obtenir un tas de pixels aléatoires. Le modèle observe ce processus des milliers de fois. Puis on lui demande de faire l'inverse : partir du chaos et reconstruire une image cohérente, étape par étape.
+Pendant l'entraînement, on prend des images réelles et on les corrompt progressivement en ajoutant du bruit — jusqu'à ce qu'il ne reste plus rien d'identifiable. Le modèle apprend à inverser ce processus : étant donné une image bruitée, enlever ce bruit, étape par étape.
 
 ```mermaid
 flowchart LR
-    subgraph FORWARD["Processus avant — on ajoute du bruit"]
-        A1["Image\nclaire"] -->|"+bruit"| B1["Peu de\nbruit"]
-        B1 -->|"+bruit"| C1["Bruit\nmoyen"]
-        C1 -->|"+bruit"| D1["Bruit\nfort"]
-        D1 -->|"+bruit"| E1["Bruit\npur"]
+    subgraph Forward [Ajouter du bruit]
+        A[Image nette] -->|+ bruit| B[Légèrement bruité]
+        B -->|+ bruit| C[Très bruité]
+        C -->|+ bruit| D[Bruit pur]
     end
-
-    subgraph REVERSE["Processus inverse — le modèle reconstruit"]
-        E2["Bruit\npur"] -->|"-bruit"| D2["Presque\nvisible"]
-        D2 -->|"-bruit"| C2["Forme\nvisible"]
-        C2 -->|"-bruit"| B2["Presque\nnet"]
-        B2 -->|"-bruit"| A2["Image\ngénérée"]
+    subgraph Reverse [Enlever le bruit]
+        E[Bruit pur] -->|- bruit| F[Forme visible]
+        F -->|- bruit| G[Image nette]
     end
-
-    style A1 fill:#1e4a3a,stroke:#3d7a5f,color:#7fd4a8
-    style B1 fill:#2a4a2a,stroke:#4a7a4a,color:#90c890
-    style C1 fill:#5a3a1a,stroke:#8a5c2e,color:#e0b470
-    style D1 fill:#5a2a1a,stroke:#8a4c2e,color:#e08060
-    style E1 fill:#2a2a36,stroke:#4a4a60,color:#9090a8
-    style E2 fill:#2a2a36,stroke:#4a4a60,color:#9090a8
-    style D2 fill:#5a2a1a,stroke:#8a4c2e,color:#e08060
-    style C2 fill:#5a3a1a,stroke:#8a5c2e,color:#e0b470
-    style B2 fill:#2a4a2a,stroke:#4a7a4a,color:#90c890
-    style A2 fill:#1e4a3a,stroke:#4a9975,color:#90e0b8
-    style FORWARD fill:#111118,stroke:#2a2a40,color:#8a7055
-    style REVERSE fill:#111118,stroke:#2a2a40,color:#8a7055
 ```
 
-**Avantages :**
-- Meilleure qualité d'image parmi les trois architectures
-- Excellent contrôle via texte (text-to-image)
-- Entraînement stable
+Une fois entraîné, on part d'un bruit aléatoire et on applique le processus inverse, étape par étape, jusqu'à faire émerger une image cohérente. Si on conditionne ce processus sur un texte, on obtient les modèles text-to-image qu'on connaît.
 
-**Limites :**
-- Lent à générer (50 à 1000 étapes de débruitage nécessaires)
-- Coûteux en ressources de calcul
+**Avantages :** meilleure qualité d'image des trois, excellent contrôle par texte, entraînement stable
 
-**Exemple réel :** DALL-E 3, Midjourney, Stable Diffusion — tu écris *"un astronaute qui joue de la guitare sur Mars"* → image générée en quelques secondes.
+**Limites :** lent à générer (des dizaines à des centaines d'étapes par image), coûteux en calcul
+
+**Exemple :** DALL-E 3, Midjourney, Stable Diffusion.
 
 ---
 
-## 4. Comparaison simple
+## Comparaison
 
-| Critère | GAN | VAE | Diffusion |
-|---------|-----|-----|-----------|
-| **Idée centrale** | Compétition faussaire / détective | Carte de l'espace des images | Apprendre à enlever le bruit |
-| **Qualité des images** | Très réaliste | Parfois flou | Excellent |
-| **Stabilité entraînement** | Difficile | Stable | Stable |
+| | GAN | VAE | Diffusion |
+|---|---|---|---|
+| **Idée centrale** | Compétition générateur / discriminateur | Compression et reconstruction | Apprendre à enlever le bruit |
+| **Qualité d'image** | Très bonne | Correcte, parfois floue | Excellente |
+| **Stabilité d'entraînement** | Difficile | Stable | Stable |
 | **Vitesse de génération** | Rapide | Rapide | Lent |
-| **Contrôle texte-image** | Limité | Limité | Excellent |
-| **Navigation dans l'espace latent** | Partielle | Fluide | Partielle |
-| **Popularité 2025-2026** | En déclin | Recherche | Dominant |
-| **Exemples connus** | StyleGAN, DeepFake | beta-VAE, médical | DALL-E 3, Midjourney, Stable Diffusion |
+| **Contrôle par texte** | Faible | Faible | Excellent |
+| **Statut en 2026** | En recul | Recherche | Dominant |
 
-**En résumé :**
-- **GAN** — Rapide et réaliste, mais entraînement capricieux et difficile à guider
-- **VAE** — Stable, espace latent continu et navigable, mais images moins nettes
-- **Diffusion** — Meilleure qualité et excellent contrôle textuel, mais lent — domine le marché depuis 2022
+Il n'y a pas de meilleure architecture dans l'absolu. Un GAN reste pertinent quand la vitesse compte plus que le contrôle. Un VAE est utile quand on a besoin d'explorer un espace latent structuré. Les modèles de diffusion dominent dès qu'on a besoin de qualité et de guidage textuel.
 
 ---
 
-## Conclusion
+## Pour finir
 
-En quelques années, la Generative AI en Computer Vision a changé ce qu'on entend par "créer une image". On est passés de simples filtres à des systèmes capables de matérialiser visuellement n'importe quelle description textuelle.
+Ce qui est frappant avec ces trois architectures, c'est qu'elles ont toutes été développées dans la même décennie, et qu'elles convergent vers le même résultat — des machines capables de produire des images indiscernables du réel — en partant d'intuitions complètement différentes.
 
-Les trois architectures — GAN, VAE, et Diffusion — représentent chacune une réponse différente à la même question fondamentale : **comment apprendre à imaginer ?**
-
-Aujourd'hui, les modèles de diffusion dominent. Mais la recherche continue et de nouvelles architectures hybrides émergent régulièrement.
-
-> "L'imagination est plus importante que la connaissance." — Albert Einstein
->
-> En 2025, les machines ont appris à imaginer. La question qui se pose maintenant n'est plus technique — elle est éthique et créative.
-
----
-
-*Mini-TAF — Modeling – Generative AI — Deadline : 10 avril 2026*
+La question technique est en grande partie résolue. Ce qui reste ouvert, c'est la question de l'usage : ces outils amplifient ce qu'on décide d'en faire.
